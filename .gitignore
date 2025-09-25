@@ -1,0 +1,6 @@
+main.py
+*.txt
+*.png
+__pycache__/
+*.pyc
+*.cpy

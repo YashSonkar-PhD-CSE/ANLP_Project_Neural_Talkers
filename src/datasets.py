@@ -24,6 +24,8 @@ class BaseDataset(torch.utils.data.Dataset):
             - 2.txt
         ...
 
+    Note: The txt files need not be paired
+    
     Args:
         - languages: Tuple(str, str): A tuple containing language codes for required languages. Supported languages will be mentioned in README
         - dataRoot: str: Path to the data folder
