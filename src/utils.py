@@ -1,4 +1,6 @@
 import torch
+import random
+
 from .constants import ACTIVATIONS
 
 class SwiGLU(torch.nn.Module):
@@ -27,5 +29,18 @@ def getActivationLayer(actType: ACTIVATIONS, **kwargs) -> torch.nn.Module:
         raise NotImplementedError(f"activation type {actType} not implemented yet")
     
 
-# Positional encodings
-# TODO: RoPE, Sinusoidal and Learnable
+def maskInput(
+    tokens: torch.Tensor,
+    padToken: int = 0,
+    maskFraction: float = 0.2
+) -> torch.Tensor:
+    # Drop {maskFraction}% of non-pad tokens
+    mask = (tokens != padToken)
+    masked = tokens.clone()
+    for i in range(tokens.size(0)):
+        valid = mask[i].nonzero(as_tuple = True)[0]
+        dropCount = int(maskFraction * len(valid))
+        if dropCount > 0:
+            dropIndices = random.sample(valid.tolist(), dropCount)
+            masked[i, dropIndices] = padToken
+    return masked

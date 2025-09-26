@@ -1,36 +1,33 @@
-from typing import Optional
+from typing import Optional, Union
 import torch
 
 from src.utils import getActivationLayer
 
 from .encoder import EncoderLayer
 from .constants import ACTIVATIONS
-from .position_encodings import getPositionEncoder
-from .config import DecoderConfig
+from .position_encodings import PositionalEncoding, getPositionEncoder
+from .config import ModelConfig
 
 class TextDecoder(torch.nn.Module):
     def __init__(
         self,
-        decoderConfig: DecoderConfig,
+        modelConfig: ModelConfig,
+        sharedEmbedding: torch.nn.Embedding,
+        sharedPosEncoder: Union[PositionalEncoding, torch.nn.Module],
         vocabSize: int
     ):
         super().__init__()
-        self.config = decoderConfig
-        self.embedDim = decoderConfig.embedDim
-        self.nHeads = decoderConfig.nHeads
-        self.nLayers = decoderConfig.nLayers
-        self.ffMult = decoderConfig.ffMult
-        self.dropout = decoderConfig.dropout
-        self.activation = decoderConfig.activation
-        self.peType = decoderConfig.peType
+        self.config = modelConfig
+        self.embedDim = modelConfig.embedDim
+        self.nHeads = modelConfig.nHeads
+        self.nLayers = modelConfig.decoderConfig.nLayers
+        self.ffMult = modelConfig.decoderConfig.ffMult
+        self.dropout = modelConfig.decoderConfig.dropout
+        self.activation = modelConfig.decoderConfig.activation
+        self.peType = modelConfig.peType
 
-        self.tokenEmbedding = torch.nn.Embedding(vocabSize, self.embedDim)
-        self.posEncoder = getPositionEncoder(
-            self.peType, 
-            embedDim = self.embedDim,
-            nHeads = self.nHeads,
-            maxSeqLen = decoderConfig.maxSeqLen
-        )
+        self.tokenEmbedding = sharedEmbedding
+        self.posEncoder = sharedPosEncoder
 
         self.layers = torch.nn.ModuleList([
             DecoderLayer(
@@ -44,6 +41,7 @@ class TextDecoder(torch.nn.Module):
         ])
 
         self.outputProjection = torch.nn.Linear(self.embedDim, vocabSize)
+        self.outputProjection.weight = self.tokenEmbedding.weight
 
     def forward(
         self,
@@ -57,7 +55,7 @@ class TextDecoder(torch.nn.Module):
 
         for layer in self.layers:
             x = layer(x, encoderOut)
-
+        print(x.shape, self.outputProjection.weight.shape)
         logits = self.outputProjection(x) # [B, T, vocabSize]
         return logits
     

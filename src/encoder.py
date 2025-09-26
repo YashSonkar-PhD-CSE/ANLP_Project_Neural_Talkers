@@ -1,34 +1,31 @@
 import torch
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 
 from .utils import getActivationLayer
-from .config import EncoderConfig
+from .config import ModelConfig
 from .constants import ACTIVATIONS
-from .position_encodings import RotaryPositionalEncoding, getPositionEncoder
+from .position_encodings import RotaryPositionalEncoding, PositionalEncoding
 
 class TextEncoder(torch.nn.Module):
     def __init__(
         self,
-        encoderConfig: EncoderConfig,
+        modelConfig: ModelConfig,
+        sharedPosEncoder: Union[PositionalEncoding, torch.nn.Module],
+        vocabSize: int
     ):
         super().__init__()
-        self.config = encoderConfig
-        self.nLayers = self.config.nLayers
+        self.config = modelConfig
+        self.nLayers = self.config.encoderConfig.nLayers
         self.nHeads = self.config.nHeads
         self.embedDim = self.config.embedDim
-        self.ffMult = self.config.ffMult
-        self.dropout = self.config.dropout
-        self.activation = self.config.activation
+        self.ffMult = self.config.encoderConfig.ffMult
+        self.dropout = self.config.encoderConfig.dropout
+        self.activation = self.config.encoderConfig.activation
         self.peType = self.config.peType
 
         self.layers = torch.nn.ModuleList()
-        
-        self.posEncoder = getPositionEncoder(
-            self.peType, 
-            embedDim = self.config.embedDim,
-            maxSeqLen = self.config.maxSeqLen,
-            nHeads = self.config.nHeads,
-        )
+        self.tokenEmbedding = torch.nn.Embedding(vocabSize, self.config.embedDim)
+        self.posEncoder = sharedPosEncoder
 
         for _ in range(self.nLayers):
             self.layers.append(EncoderLayer(
@@ -41,6 +38,7 @@ class TextEncoder(torch.nn.Module):
             ))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.tokenEmbedding(x)
         if self.peType != "rope" and self.posEncoder is not None:
             x = self.posEncoder(x)
         for layer in self.layers:

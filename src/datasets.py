@@ -1,11 +1,14 @@
 import torch
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Union
 from dataclasses import dataclass
 import os
+import random
+
+from .constants import DATA_SPLITS
 
 @dataclass
 class DataItem:
-    text: str
+    text: torch.Tensor
     id: int
     language: str
 
@@ -37,6 +40,7 @@ class BaseDataset(torch.utils.data.Dataset):
         self,
         languages: Tuple[str, str] = ("en", "fr"),
         dataRoot: str = "../data/",
+        split: DATA_SPLITS = "valid",
         tokenizer: torch.nn.Module = torch.nn.Identity(),
         name: str = "",
     ):
@@ -44,27 +48,59 @@ class BaseDataset(torch.utils.data.Dataset):
         self.name = name
         self.tokenizer = tokenizer
         self.languages = languages
-        self.langData: Dict[str, List[DataItem]] = {languages[0]: list(), languages[1]: list()}
+        self.langData: Dict[str, List[DataItem]] = {lang: [] for lang in languages}
+        self.data: List[DataItem] = []
+        self.langToId = {lang: i for i, lang in enumerate(languages)}
         for lang in languages:
-            for file in os.listdir(os.path.join(dataRoot, lang)):
+            langPath = os.path.join(dataRoot, lang)
+            for file in os.listdir(langPath):
                 if not file.endswith('.txt'):
                     continue
-                with open(os.path.join(dataRoot, lang, file), "r", encoding = "utf-8") as f:
-                    self.langData[lang].append(DataItem(
-                        text = self.tokenizer(f.read().strip()),
+                with open(os.path.join(langPath, file), "r", encoding="utf-8") as f:
+                    text = f.read().strip()
+                    tokenized = self.tokenizer(text)
+                    item = DataItem(
+                        text = tokenized,
                         id = len(self.langData[lang]),
                         language = lang
-                    ))
+                    )
+                    self.langData[lang].append(item)
+                    self.data.append(item)
     
     def __len__(self) -> int:
-        return sum(self.getLengthPerLangauge())
+        return len(self.data)
     
     def __getitem__(self, idx: int) -> DataItem:
-        return self.langData[self.languages[idx % 2]][idx]
+        return self.data[idx]
     
-    def getLengthPerLangauge(self) -> Tuple[int, int]:
+    def getLengthPerLanguage(self) -> Tuple[int, int]:
         return len(self.langData[self.languages[0]]), len(self.langData[self.languages[1]])
     
     def getSampleByLanguage(self, lang: str, idx: int) -> DataItem:
         assert lang in self.languages, f"language ({lang}) not in dataset (available langauges: {self.languages})"
         return self.langData[lang][idx]
+    
+    def getRandomSample(self, lang: str) -> DataItem:
+        assert lang in self.languages, f"language ({lang}) not in dataset (available langauges: {self.languages})"
+        return random.choice(self.langData[lang])
+    
+    def getLanguageBatches(self, lang: str, batchSize: int) -> List[List[DataItem]]:
+        assert lang in self.languages, f"language ({lang}) not in dataset (available langauges: {self.languages})"
+        items = self.langData[lang]
+        return [items[i: i + batchSize] for i in range(0, len(items), batchSize)]
+
+    def getLangId(self, lang: str) -> int:
+        return self.langToId[lang]
+    
+    def getLanguages(self) -> Tuple[str, str]:
+        return self.languages
+    
+    def collateFn(self, batch: List[DataItem]) -> Dict[str, torch.Tensor]:
+        tokenIds = [item.text for item in batch] 
+        padded = torch.nn.utils.rnn.pad_sequence(
+            tokenIds, 
+            batch_first=True, 
+            padding_value = 0
+        )
+        langIds = torch.LongTensor([self.langToId[item.language] for item in batch])
+        return {"tokens": padded, "languages": langIds}
