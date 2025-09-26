@@ -29,3 +29,20 @@ class EncoderConfig:
     dropout: float = 0.05
     activation: ACTIVATIONS = "relu"
     peType: PE_TYPES = "none"
+    maxSeqLen: int = 5000
+
+@dataclass
+class DecoderConfig:
+    nLayers: int = 4
+    nHeads: int = 8
+    embedDim: int = 512
+    ffMult: int = 4
+    dropout: float = 0.05
+    activation: ACTIVATIONS = "relu"
+    peType: PE_TYPES = "none"
+    maxSeqLen: int = 5000
+
+@dataclass
+class ModelConfig:
+    encoderConfig: EncoderConfig = EncoderConfig()
+    decoderConfig: DecoderConfig = DecoderConfig()

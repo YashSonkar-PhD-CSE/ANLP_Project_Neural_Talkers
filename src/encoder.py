@@ -22,10 +22,12 @@ class TextEncoder(torch.nn.Module):
         self.peType = self.config.peType
 
         self.layers = torch.nn.ModuleList()
-        posEncArgs: Dict[str, Any] = {}
+        
         self.posEncoder = getPositionEncoder(
             self.peType, 
-            **posEncArgs,
+            embedDim = self.config.embedDim,
+            maxSeqLen = self.config.maxSeqLen,
+            nHeads = self.config.nHeads,
         )
 
         for _ in range(self.nLayers):
@@ -66,12 +68,12 @@ class EncoderLayer(torch.nn.Module):
 
         self.posEncoder = posEncoder
 
-        self.qkv = torch.nn.Linear(embedDim, 3 * embedDim)
+        self.qkvProj = torch.nn.Linear(embedDim, 3 * embedDim)
         self.activation = getActivationLayer(
             activation,
             embedDim = embedDim, # Required by SwiGLU
         )
-        self.scale = embedDim ** -0.5 
+        self.scale: float = embedDim ** -0.5 
         self.softmax = torch.nn.Softmax(dim = -1)
         self.norm1 = torch.nn.LayerNorm(embedDim)
         self.norm2 = torch.nn.LayerNorm(embedDim)
@@ -89,7 +91,7 @@ class EncoderLayer(torch.nn.Module):
     ):
         # x: [B, N, embedDim]
         B, N, D = x.size()
-        qkv: torch.Tensor = self.qkv(x) # [B, N, 3 * embedDim]
+        qkv: torch.Tensor = self.qkvProj(x) # [B, N, 3 * embedDim]
         q = qkv[..., :self.embedDim] # [B, N, embedDim]
         k = qkv[..., self.embedDim: 2 * self.embedDim] # [B, N, embedDim]
         v = qkv[..., 2 * self.embedDim: ] # [B, N, embedDim]
@@ -102,7 +104,7 @@ class EncoderLayer(torch.nn.Module):
             q, k = self.posEncoder.forwardRope(q, k)
 
         attnWeights = (q @ k.transpose(-1, -2)) * self.scale # [B, H, N, N]
-        z = self.softmax(attnWeights) # [B, H, N, N]
+        z: torch.Tensor = self.softmax(attnWeights) # [B, H, N, N]
 
         attnScores = z @ v # [B, H, N, embedDim // H]
 

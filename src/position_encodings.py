@@ -21,7 +21,6 @@ class PositionalEncoding(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError(f"forward method not implemented for {self.peType} positional encoding")
 
-
 class RotaryPositionalEncoding(PositionalEncoding):
     def __init__(
         self,
