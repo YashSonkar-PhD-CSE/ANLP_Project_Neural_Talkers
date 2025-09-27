@@ -42,5 +42,19 @@ class ModelConfig:
     nHeads: int = 8
     encoderConfig: EncoderConfig = field(default_factory=EncoderConfig)
     decoderConfig: DecoderConfig = field(default_factory=DecoderConfig)
-    languages: Tuple[str, str] = field(default_factory=Tuple)
+    languages: Tuple[str, str] = tuple()
     vocabSize: int = 50000
+    startToken: int = 1
+    padToken: int = 0
+
+
+def getModelConfig(
+    configName: str,
+    languages: Tuple[str, str],
+    vocabSize: int
+) -> ModelConfig:
+    # TODO: Return proper model configs from here
+    return ModelConfig(
+        languages = languages,
+        vocabSize = vocabSize,
+    )

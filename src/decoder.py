@@ -55,7 +55,6 @@ class TextDecoder(torch.nn.Module):
 
         for layer in self.layers:
             x = layer(x, encoderOut)
-        print(x.shape, self.outputProjection.weight.shape)
         logits = self.outputProjection(x) # [B, T, vocabSize]
         return logits
     
