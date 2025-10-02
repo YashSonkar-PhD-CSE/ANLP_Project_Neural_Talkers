@@ -3,6 +3,7 @@
 ## Table of contents
 <ol>
     <li>Model architecture</li>
+    <li>Downloading the datasets</li>
     <li>Training stages</li>
     <!-- <li>Important files</li> -->
     <li>How to train the model</li>
@@ -23,6 +24,15 @@ Currently, we only provide base model config with following specifications:
 
 
 Training is only done with RoPE but other variants can be trained by changing the config (code implementation is present).
+
+## Downloading the datasets
+The datasets can be downloaded and saved using `download_dataset.py` in `data` folder. Currently, only two corpus are supported for download english-hindi and english-latin. The number of samples in train and test splits can be specified. By default, train split is of 100k samples and test split is of 500 samples. Validation split is 5% of train split. Dataset will be saved in `data\{corpusName}\{split}\{language}\{id}.txt`. The samples in the languages for each split are paired by default since test split requires paired corpus, however, the Dataset class used during training doesn't assume presence of paired data in train and valid splits. 
+
+Sample usage of `download_dataset.py` to download english-latin corpus is as:
+```bash
+python download_dataset.py --corpus en_la \ 
+    --num-train-samples 100000 --num-test-samples 500
+```
 
 ## Training Stages:
 Due to our assumption of absence of paired data, training is not straightforward and is carried out in two stages:
