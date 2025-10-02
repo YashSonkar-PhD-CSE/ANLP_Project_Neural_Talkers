@@ -15,18 +15,21 @@ def createDirs(*args):
         os.makedirs(folder, exist_ok=True)
 
 def saveSamplesFromDs(dataset, path: str, numSamples: int, srcKey: str, tgtKey: str, languages: Tuple[str, str]):
-    it = iter(dataset)
     dirs = [os.path.join(path, lang) for lang in languages]
     for dir in dirs:
         os.makedirs(dir, exist_ok=True)
-        
+
     for i in range(numSamples):
         print(f"Progress: {i} / {numSamples} ({i * 100 / numSamples:.2f}%)", " " * 30, end = "\r")
-        sample = next(it)
-        for key, name, dir in zip((srcKey, tgtKey), languages, dirs):
-            text = sample[key]
-            with open(os.path.join(dir, f"{i}.txt"), "w", encoding='utf-8') as txtFile:
-                txtFile.write(text.strip())
+        try:
+            sample = next(dataset)
+            for key, name, dir in zip((srcKey, tgtKey), languages, dirs):
+                text = sample[key]
+                with open(os.path.join(dir, f"{i}.txt"), "w", encoding='utf-8') as txtFile:
+                    txtFile.write(text.strip())
+        except:
+            print(f"\nWarning: Specified download of {numSamples} samples but dataset only has {i}. Continuing to the next split")
+            return
     
 def downloadCorpus(corpus: str, numTrainSamples: int = 100_000, numTestSamples: int = 500):
     repoId = corpusToRepoId(corpus)
@@ -40,31 +43,66 @@ def downloadCorpus(corpus: str, numTrainSamples: int = 100_000, numTestSamples: 
     if corpus == "en_la":
         assert isinstance(repoId, str)
         trainDs = load_dataset(repoId, split="train", streaming=True)
+        validDs = load_dataset(repoId, split="valid", streaming=True)
         testDs = load_dataset(repoId, split="test", streaming=True)
+
+        trainIt = iter(trainDs)
+        validIt = iter(validDs)
+        testIt = iter(testDs)
+        
+        print("Split = train", " " * 30)
+        saveSamplesFromDs(
+            dataset = trainIt,
+            path = trainDir,
+            numSamples = numTrainSamples,
+            srcKey = "en",
+            tgtKey = "la",
+            languages = ("en", "la")
+        )
+        print("Split = valid", " " * 30)
+        saveSamplesFromDs(
+            dataset = validIt,
+            path = validDir,
+            numSamples = int(numTrainSamples * 0.05),
+            srcKey = "en",
+            tgtKey = "la",
+            languages = ("en", "la")
+        )
+        print("Split = test", " " * 30)
+        saveSamplesFromDs(
+            dataset = testIt,
+            path = testDir,
+            numSamples = numTestSamples,
+            srcKey = "en",
+            tgtKey = "la",
+            languages = ("en", "la")
+        )
     elif corpus == "en_hi":
         assert isinstance(repoId, Tuple)
         ds = load_dataset(path=repoId[0], name=repoId[1], split="train", streaming=True)
-        print("Split = train")
+        it = iter(ds)
+
+        print("Split = train", " " * 30)
         saveSamplesFromDs(
-            dataset = ds,
+            dataset = it,
             path = trainDir,
             numSamples = numTrainSamples,
             srcKey = "src",
             tgtKey = "tgt",
             languages = ("en", "hi")
         )
-        print("Split = valid")
+        print("Split = valid", " " * 30)
         saveSamplesFromDs(
-            dataset = ds,
+            dataset = it,
             path = validDir,
             numSamples = int(numTrainSamples * 0.05),
             srcKey = "src",
             tgtKey = "tgt",
             languages = ("en", "hi")
         )
-        print("Split = test")
+        print("Split = test", " " * 30)
         saveSamplesFromDs(
-            dataset = ds,
+            dataset = it,
             path = testDir,
             numSamples = numTestSamples,
             srcKey = "src",
@@ -91,6 +129,7 @@ def main():
         default = 500
     )
     args = parser.parse_args()
+    
     downloadCorpus(
         args.corpus,
         numTrainSamples = args.num_train_samples,
