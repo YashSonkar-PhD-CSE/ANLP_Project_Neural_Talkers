@@ -22,22 +22,22 @@ class DataConfig:
 
 @dataclass
 class EncoderConfig:
-    nLayers: int = 4
+    nLayers: int = 6
     ffMult: int = 4
     dropout: float = 0.05
-    activation: ACTIVATIONS = "relu"
+    activation: ACTIVATIONS = "swiglu"
 
 @dataclass
 class DecoderConfig:
-    nLayers: int = 4
+    nLayers: int = 6
     ffMult: int = 4
     dropout: float = 0.05
-    activation: ACTIVATIONS = "relu"
+    activation: ACTIVATIONS = "swiglu"
 
 @dataclass
 class ModelConfig:
     embedDim: int = 512
-    peType: PE_TYPES = "none"
+    peType: PE_TYPES = "rope"
     maxSeqLen: int = 5000
     nHeads: int = 8
     encoderConfig: EncoderConfig = field(default_factory=EncoderConfig)

@@ -121,4 +121,4 @@ CLS_MAP: Dict[PE_TYPES, Optional[Type[PositionalEncoding]]] = {
     
 def getPositionEncoder(peType: PE_TYPES, **kwargs: Any) -> PositionalEncoding | torch.nn.Module:
     cls = CLS_MAP.get(peType)
-    return cls(peType, **kwargs) if cls is not None else torch.nn.Identity()
+    return cls(**kwargs) if cls is not None else torch.nn.Identity()

@@ -14,8 +14,8 @@ The model is a standard auto-regressive transformer with a unified encoder for m
 Currently, we only provide base model config with following specifications:
 |Field|Value|
 |----|----|
-|Encoder layers|4|
-|Decoder layers|4|
+|Encoder layers|6|
+|Decoder layers|6|
 |Number of attention heads|8|
 |Embedding dimension|512|
 |maximum seq. len| 5000|
