@@ -8,6 +8,7 @@
     <!-- <li>Important files</li> -->
     <li>How to train the model</li>
     <li>TODO Section</li>
+    <li>Credits</li>
 </ol>
 
 ## Model Architecture
@@ -64,4 +65,43 @@ python train.py --train-phase backtranslation \
     --checkpoint-path ./checkpoints --model-config base \
     --batch-size 32 --save-interval 10 --log \
     --autoencoder-checkpoint ./checkpoints/autoencoder_epoch1.pt
+```
+
+## TODO
+* Implement support for multi-lingual training (more than 2 languages at a time).
+* Implement multi-task training for improved performance.
+* Implement testing/evaluation loop.
+* Report performance metrics.
+
+## Credits
+We utilized several open-source works for inspiration of code and for datasets.
+
+specifically, we used the following resources:
+* <a href="https://huggingface.co/datasets/grosenthal/latin_english_translation">Grosenthal latin english translation</a> (En-La corpus)
+* <a href="https://huggingface.co/datasets/ai4bharat/samanantar">AI4Bharat/Samanantar</a> (En-Hi corpus)
+```bibtex
+@article{10.1162/tacl_a_00452,
+    author = {Ramesh, Gowtham and Doddapaneni, Sumanth and Bheemaraj, Aravinth and Jobanputra, Mayank and AK, Raghavan and Sharma, Ajitesh and Sahoo, Sujit and Diddee, Harshita and J, Mahalakshmi and Kakwani, Divyanshu and Kumar, Navneet and Pradeep, Aswin and Nagaraj, Srihari and Deepak, Kumar and Raghavan, Vivek and Kunchukuttan, Anoop and Kumar, Pratyush and Khapra, Mitesh Shantadevi},
+    title = "{Samanantar: The Largest Publicly Available Parallel Corpora Collection for 11 Indic Languages}",
+    journal = {Transactions of the Association for Computational Linguistics},
+    volume = {10},
+    pages = {145-162},
+    year = {2022},
+    month = {02},
+    issn = {2307-387X},
+    doi = {10.1162/tacl_a_00452},
+    url = {https://doi.org/10.1162/tacl\_a\_00452},
+    eprint = {https://direct.mit.edu/tacl/article-pdf/doi/10.1162/tacl\_a\_00452/1987010/tacl\_a\_00452.pdf},
+}
+```
+* Translatotron 2: Robust direct speech-to-speech translation
+```bibtex
+@article{jia2021translatotron,
+  title={Translatotron 2: Robust direct speech-to-speech translation},
+  author={Jia, Ye and Ramanovich, Michelle Tadmor and Remez, Tal and Pomerantz, Roi},
+  journal={arXiv preprint arXiv:2107.08661},
+  volume={6},
+  number={7},
+  year={2021}
+}
 ```
