@@ -3,7 +3,8 @@ import random
 import argparse
 from typing import Literal, Optional
 
-from .constants import ACTIVATIONS, LANGUAGES
+from .tokenizers import TokenizerModule
+from .constants import ACTIVATIONS, LANGUAGES, TOKENIZERS
 
 class SwiGLU(torch.nn.Module):
     def __init__(self, dimension):
@@ -50,6 +51,11 @@ def maskInput(
 def makeTrainParser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '--data-root',
+        type = str,
+        default = './data/'
+    )
+    parser.add_argument(
         "--train-phase",
         choices = ["autoencoder", "backtranslation"]
     )
@@ -81,6 +87,11 @@ def makeTrainParser() -> argparse.ArgumentParser:
         action = "store_true"
     )
     parser.add_argument(
+        '--tokenizer',
+        choices = TOKENIZERS.__args__,
+        default = "bert"
+    )
+    parser.add_argument(
         "--batch-size",
         type = int,
         default = 32
@@ -100,6 +111,7 @@ def makeTrainParser() -> argparse.ArgumentParser:
 
 # Typed namepsace to enable syntax highlighting and auto-completes with IDEs when using args
 class TrainArgs(argparse.Namespace):
+    data_root: str
     train_phase: Literal["autoencoder", "backtranslation"]
     num_epochs: int
     src_language: LANGUAGES
@@ -108,5 +120,21 @@ class TrainArgs(argparse.Namespace):
     model_config: str
     log: bool
     batch_size: int
+    tokenizer: TOKENIZERS
     save_interval: int
     autoencoder_checkpoint: Optional[str]
+
+def getTokenizer(tokenizerType: TOKENIZERS, maxLength: int = 512) -> TokenizerModule:
+    tokenizerName = ""
+    if tokenizerType == "bert":
+        tokenizerName = "bert-multilingual"
+    elif tokenizerType == "bpe":
+        tokenizerName = "bpe"
+    elif tokenizerType == "sentencepiece":
+        tokenizerName = "sentencepiece"
+    else:
+        raise NotImplementedError(f"Tokenizer {tokenizerType} hasn't been implemented yet")
+    return TokenizerModule(
+        tokenizer_type = tokenizerName,
+        max_length = maxLength
+    )

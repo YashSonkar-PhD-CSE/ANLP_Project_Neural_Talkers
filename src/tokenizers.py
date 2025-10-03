@@ -7,7 +7,7 @@ from transformers import (
 )
 
 class TokenizerModule(nn.Module):
-    def __init__(self, tokenizer_type="bert-multilingual", max_length=128):
+    def __init__(self, tokenizer_type="bert-multilingual", max_length=512):
         
         super().__init__()
         self.max_length = max_length

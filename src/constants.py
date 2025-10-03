@@ -8,4 +8,6 @@ FORWARD_MODES = Literal["reconstruct", "translate"]
 
 DATA_SPLITS = Literal["train", "valid", "test"]
 
-LANGUAGES = Literal["en", "fr", "hi"]
+LANGUAGES = Literal["en", "la", "hi"]
+
+TOKENIZERS = Literal["bert", "bpe", "sentencepiece"]

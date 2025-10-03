@@ -3,7 +3,7 @@ from src.model import TextTransformerModel
 import torch
 from torchview import draw_graph
 
-from src.utils import makeTrainParser, TrainArgs
+from src.utils import makeTrainParser, TrainArgs, getTokenizer
 from src.config import getModelConfig
 
 def main():
@@ -18,12 +18,17 @@ def main():
         vocabSize = 5000
     )
 
+    tokenizer = getTokenizer(args.tokenizer)
+    
+    config.vocabSize = tokenizer.vocab_size
+
     if args.train_phase == "autoencoder":
         from src.train_auto_encoder import startTrain
 
         startTrain(
+            root = args.data_root,
             languages = languages,
-            tokenizer = torch.nn.Identity(), # Pass tokenizer in here
+            tokenizer = tokenizer,
             modelConfig = config,
             numEpochs = args.num_epochs,
             checkpointDir = args.checkpoint_path,
@@ -35,8 +40,9 @@ def main():
     else:
         from src.train_back_translation import startTrain
         startTrain(
+            root = args.data_root,
             languages = languages,
-            tokenizer = torch.nn.Identity(),
+            tokenizer = tokenizer,
             modelConfig = config,
             numEpochs = args.num_epochs,
             checkpointDir = args.checkpoint_path,

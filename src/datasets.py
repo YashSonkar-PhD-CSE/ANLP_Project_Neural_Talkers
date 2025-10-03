@@ -47,12 +47,13 @@ class BaseDataset(torch.utils.data.Dataset):
         super().__init__()
         self.name = name
         self.tokenizer = tokenizer
+        self.dataPath = os.path.join(dataRoot, split)
         self.languages = languages
         self.langData: Dict[str, List[DataItem]] = {lang: [] for lang in languages}
         self.data: List[DataItem] = []
         self.langToId = {lang: i for i, lang in enumerate(languages)}
         for lang in languages:
-            langPath = os.path.join(dataRoot, lang)
+            langPath = os.path.join(self.dataPath, lang)
             for file in os.listdir(langPath):
                 if not file.endswith('.txt'):
                     continue

@@ -124,6 +124,7 @@ def trainAutoEncoderStage(
         model.train()
 
 def startTrain(
+    root: str,
     languages: Tuple[str, str],
     tokenizer: torch.nn.Module,
     modelConfig: ModelConfig,
@@ -135,18 +136,20 @@ def startTrain(
 ):
     os.makedirs(checkpointDir, exist_ok = True)
     trainDataset = BaseDataset(
+        dataRoot = root,
         languages = languages,
         tokenizer = tokenizer,
-        split = "train",
+        split = "test",
         name = f"{languages[0]}_{languages[1]}_train_dataset",
     )
     validDataset = BaseDataset(
+        dataRoot = root,
         languages = languages,
         tokenizer = tokenizer,
         split = "valid",
         name = f"{languages[0]}_{languages[1]}_valid_dataset",
     )
-
+    
     model = TextTransformerModel(modelConfig = modelConfig)
 
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-4)

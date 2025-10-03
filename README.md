@@ -20,7 +20,8 @@ Currently, we only provide base model config with following specifications:
 |Decoder layers|6|
 |Number of attention heads|8|
 |Embedding dimension|512|
-|maximum seq. len| 5000|
+|maximum seq. len|512|
+|Tokenizer|BERT Multilingual|
 |Position encoding|RoPE|
 
 

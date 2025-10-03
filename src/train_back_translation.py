@@ -135,6 +135,7 @@ def trainBackTranslationStage(
         model.train()
 
 def startTrain(
+    root: str,
     languages: Tuple[str, str],
     tokenizer: torch.nn.Module,
     modelConfig: ModelConfig,
@@ -147,12 +148,14 @@ def startTrain(
 ):
     
     trainDataset = BaseDataset(
+        dataRoot = root,
         languages = languages,
         tokenizer = tokenizer,
         split = "train",
         name = f"{languages[0]}_{languages[1]}_train_dataset",
     )
     validDataset = BaseDataset(
+        dataRoot = root,
         languages = languages,
         tokenizer = tokenizer,
         split = "valid",
