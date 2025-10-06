@@ -1,1 +1,5 @@
-torch=2.8.0+cu126
+torch==2.8.0+cu129
+transformers>=4.56.0
+torchview==0.2.7
+tensorboard==2.20.0
+datasets==4.1.1
