@@ -53,3 +53,23 @@ class TokenizerModule(nn.Module):
         else:
             return self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
 
+    def get_vocab(self, return_dict=False):
+        """Return vocab size or full vocab dictionary."""
+        if return_dict:
+            return self.tokenizer.get_vocab()
+        return len(self.tokenizer)
+
+    def get_special_token_ids(self):
+        """Return a dictionary of all relevant special token IDs."""
+        t = self.tokenizer
+        return {
+            "pad_token_id": getattr(t, "pad_token_id", None),
+            "bos_token_id": getattr(t, "bos_token_id", None),
+            "eos_token_id": getattr(t, "eos_token_id", None),
+            "cls_token_id": getattr(t, "cls_token_id", None),
+            "sep_token_id": getattr(t, "sep_token_id", None),
+            "unk_token_id": getattr(t, "unk_token_id", None),
+            "mask_token_id": getattr(t, "mask_token_id", None),
+        }
+
+
