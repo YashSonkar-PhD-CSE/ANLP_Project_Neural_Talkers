@@ -38,3 +38,18 @@ class TokenizerModule(nn.Module):
             return_tensors="pt"
         )
         return encodings
+        
+    def decode(self, token_ids, skip_special_tokens=True):
+        """
+        Decode a single sequence or batch of token IDs back to string(s).
+        """
+        # Handle both single example (1D tensor) and batch (2D tensor)
+        if isinstance(token_ids, torch.Tensor):
+            token_ids = token_ids.tolist()
+
+        # If input is list of lists → batch decode
+        if isinstance(token_ids[0], list):
+            return self.tokenizer.batch_decode(token_ids, skip_special_tokens=skip_special_tokens)
+        else:
+            return self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
+
