@@ -14,7 +14,10 @@ class TokenizerModule(nn.Module):
 
         if tokenizer_type == "bert-multilingual":
             self.tokenizer = BertTokenizer.from_pretrained("bert-base-multilingual-cased")
-
+            self.tokenizer.bos_token_id = getattr(self.tokenizer, "cls_token_id", None)
+            # BERT doesn't have a BOS and EOS tokens so we use CLS as a 
+            # substitute for BOS and SEP as substitute for EOS
+            self.tokenizer.eos_token_id = getattr(self.tokenizer, "sep_token_id", None)
         elif tokenizer_type == "bpe":
             self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
             if self.tokenizer.pad_token is None:

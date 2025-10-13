@@ -8,7 +8,8 @@ from .constants import DATA_SPLITS
 
 @dataclass
 class DataItem:
-    text: torch.Tensor
+    text: str
+    tokenIds: torch.Tensor
     id: int
     language: str
 
@@ -61,7 +62,8 @@ class BaseDataset(torch.utils.data.Dataset):
                     text = f.read().strip()
                     tokenized = self.tokenizer(text)
                     item = DataItem(
-                        text = tokenized,
+                        text = text,
+                        tokenIds = tokenized['input_ids'].squeeze(0),
                         id = len(self.langData[lang]),
                         language = lang
                     )
@@ -97,7 +99,7 @@ class BaseDataset(torch.utils.data.Dataset):
         return self.languages
     
     def collateFn(self, batch: List[DataItem]) -> Dict[str, torch.Tensor]:
-        tokenIds = [item.text for item in batch] 
+        tokenIds = [item.tokenIds for item in batch]
         padded = torch.nn.utils.rnn.pad_sequence(
             tokenIds, 
             batch_first=True, 

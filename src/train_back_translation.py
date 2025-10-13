@@ -185,7 +185,7 @@ def startTrain(
     clipNorm = 1.0
     writer = SummaryWriter(log_dir = "runs/backtranslation_phase2") if shouldLog else None
 
-    padTokenIdx = 0
+    padTokenIdx = modelConfig.padToken
     criterion = torch.nn.CrossEntropyLoss(
         label_smoothing = 0.1, 
         ignore_index = padTokenIdx

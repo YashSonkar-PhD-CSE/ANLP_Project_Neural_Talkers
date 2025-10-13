@@ -89,7 +89,7 @@ def makeTrainParser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--tokenizer',
         choices = TOKENIZERS.__args__,
-        default = "bert"
+        default = "bpe"
     )
     parser.add_argument(
         "--batch-size",

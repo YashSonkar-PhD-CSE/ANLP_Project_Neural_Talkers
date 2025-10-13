@@ -1,8 +1,3 @@
-from src.config import DecoderConfig, EncoderConfig, ModelConfig
-from src.model import TextTransformerModel
-import torch
-from torchview import draw_graph
-
 from src.utils import makeTrainParser, TrainArgs, getTokenizer
 from src.config import getModelConfig
 
@@ -21,6 +16,9 @@ def main():
     tokenizer = getTokenizer(args.tokenizer)
     
     config.vocabSize = tokenizer.vocab_size
+    specialTokenIds = tokenizer.get_special_token_ids()
+    config.startToken = specialTokenIds["bos_token_id"] # type: ignore
+    config.padToken = specialTokenIds["pad_token_id"] # type: ignore
 
     if args.train_phase == "autoencoder":
         from src.train_auto_encoder import startTrain

@@ -107,7 +107,7 @@ def trainAutoEncoderStage(
 
             # Log sample reconstruction
             sample = validDataset.getRandomSample(lang)
-            original = sample.text.unsqueeze(0).to(device)
+            original = sample.tokenIds.unsqueeze(0).to(device)
             masked = maskInput(original, padToken=padToken)
             with torch.no_grad():
                 output = model(srcTokens=masked, tgtTokens=None, targetLang=lang, mode="reconstruct")
@@ -159,7 +159,7 @@ def startTrain(
     if shouldLog:
         writer = SummaryWriter(log_dir = "runs/autoencoder_phase1")
 
-    padTokenIdx = 0
+    padTokenIdx = modelConfig.padToken
     criterion = torch.nn.CrossEntropyLoss(
         label_smoothing = 0.1,
         ignore_index = padTokenIdx,

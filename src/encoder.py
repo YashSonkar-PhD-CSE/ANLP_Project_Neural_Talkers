@@ -89,7 +89,9 @@ class EncoderLayer(torch.nn.Module):
     ):
         # x: [B, N, embedDim]
         B, N, D = x.size()
+        print(x.size())
         qkv: torch.Tensor = self.qkvProj(x) # [B, N, 3 * embedDim]
+        print(qkv.size())
         q = qkv[..., :self.embedDim] # [B, N, embedDim]
         k = qkv[..., self.embedDim: 2 * self.embedDim] # [B, N, embedDim]
         v = qkv[..., 2 * self.embedDim: ] # [B, N, embedDim]
