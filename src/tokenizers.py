@@ -29,7 +29,8 @@ class TokenizerModule(nn.Module):
         else:
             raise ValueError(f"Unknown tokenizer_type: {tokenizer_type}")
 
-        self.vocab_size = self.tokenizer.vocab_size
+        #self.vocab_size = self.tokenizer.vocab_size
+        self.vocab_size = len(self.tokenizer)
         self.tokenizer_type = tokenizer_type
 
     def forward(self, texts):
@@ -74,5 +75,6 @@ class TokenizerModule(nn.Module):
             "unk_token_id": getattr(t, "unk_token_id", None),
             "mask_token_id": getattr(t, "mask_token_id", None),
         }
+
 
 
