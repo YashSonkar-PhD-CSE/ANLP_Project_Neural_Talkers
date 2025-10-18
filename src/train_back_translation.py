@@ -18,7 +18,7 @@ def trainBackTranslationStage(
     optimizer: torch.optim.Optimizer,
     writer: Optional[SummaryWriter],
     batchSize: int,
-    scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
+    scheduler: torch.optim.lr_scheduler.LRScheduler,
     clipNorm: float,
     saveInterval: int = 1,
     checkpointDir: str = "./checkpoints",
@@ -126,7 +126,7 @@ def trainBackTranslationStage(
                     writer.add_scalar(f"{inputLang}/val/loss", valLoss / valTokens, epoch)
                     writer.add_scalar(f"{inputLang}/val/accuracy", valAcc / valTokens, epoch)
 
-                scheduler.step(valLoss / valTokens)
+                scheduler.step()
                 logger.info(f"[{inputLang}] Val Loss: {valLoss / valTokens:.4f}, Val Acc: {valAcc / valTokens:.4f}")
             
         if (epoch + 1) % saveInterval == 0:
@@ -175,12 +175,8 @@ def startTrain(
         logger.warn("Training from scratch for back-translation, performance will take a hit")
     
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-4)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode = "min",
-        factor = 0.5,
-        patience = 2
-    )
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=numEpochs, eta_min=1e-6)
+
 
     clipNorm = 1.0
     writer = SummaryWriter(log_dir = "runs/backtranslation_phase2") if shouldLog else None

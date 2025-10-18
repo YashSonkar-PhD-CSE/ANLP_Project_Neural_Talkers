@@ -22,7 +22,7 @@ def trainAutoEncoderStage(
     optimizer: torch.optim.Optimizer,
     writer: Optional[SummaryWriter],
     batchSize: int,
-    scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau,
+    scheduler: torch.optim.lr_scheduler.LRScheduler,
     clipNorm: float,
     saveInterval: int = 1,
     checkpointDir: str = "./checkpoints/",
@@ -103,7 +103,7 @@ def trainAutoEncoderStage(
             if writer is not None:
                 writer.add_scalar(f"{lang}/val/loss", valLoss / valTokens, epoch)
                 writer.add_scalar(f"{lang}/val/accuracy", valAcc / valTokens, epoch)
-            scheduler.step(metrics=valLoss / valTokens)
+            scheduler.step()
             logger.info(f"[{lang}] Val Loss: {valLoss / valTokens:.4f}, Val Acc: {valAcc / valTokens:.4f}")
 
             # Log sample reconstruction
@@ -155,7 +155,7 @@ def startTrain(
     model = TextTransformerModel(modelConfig = modelConfig)
 
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-4)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor = 0.5, patience = 2)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=numEpochs, eta_min=1e-6)
     clipNorm = 1.0
     writer = None
     if shouldLog:
