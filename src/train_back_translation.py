@@ -8,6 +8,7 @@ from .config import ModelConfig
 from .datasets import BaseDataset
 from .model import TextTransformerModel
 
+logging.basicConfig(filename = "./backtranslation_phase2_logs.txt")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 

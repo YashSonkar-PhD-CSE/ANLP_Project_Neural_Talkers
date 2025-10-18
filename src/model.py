@@ -46,7 +46,6 @@ class TextTransformerModel(torch.nn.Module):
         # srcTokens: [B, S]
         # tgtTokens: [B, T]
         # mode: "translate" for back-translation and "reconstruct" for denoising and reconstruction
-        assert (tgtTokens is None) == (mode == "reconstruct"), f"tgtTokens is None: {tgtTokens is None} and mode is {mode}"
 
         encoderOut = self.encoder(srcTokens) # [B, S, D]
         decoder: TextDecoder = self.decoder[targetLang] # type: ignore
