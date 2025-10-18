@@ -3,6 +3,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 import logging
 import os
+from tqdm import tqdm
 
 from .config import ModelConfig
 from .datasets import BaseDataset
@@ -42,7 +43,7 @@ def trainBackTranslationStage(
             inputLang, outputLang = direction
             trainBatches = trainDataset.getLanguageBatches(inputLang, batchSize)
 
-            for batch in trainBatches:
+            for batch in tqdm(trainBatches, desc=f"Train [{srcLang} -> {tgtLang}] Epoch {epoch+1}", leave=False):
                 batchData = trainDataset.collateFn(batch)
                 inputTokens = batchData["tokens"].to(device)
 
@@ -93,7 +94,7 @@ def trainBackTranslationStage(
             valLoss, valAcc, valTokens = 0.0, 0.0, 0
 
             with torch.no_grad():
-                for batch in valBatches:
+                for batch in tqdm(valBatches, desc=f"Val [{srcLang} -> {tgtLang}] Epoch {epoch+1}", leave=False):
                     batchData = validDataset.collateFn(batch)
                     inputTokens = batchData["tokens"].to(device)
 
