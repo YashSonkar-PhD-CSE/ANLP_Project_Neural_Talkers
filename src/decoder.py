@@ -86,7 +86,7 @@ class DecoderLayer(torch.nn.Module):
 
         self.ffn = torch.nn.Sequential(
             torch.nn.Linear(embedDim, ffMult * embedDim),
-            getActivationLayer(activation, embedDim = embedDim),
+            getActivationLayer(activation, embedDim = ffMult * embedDim),
             torch.nn.Linear(ffMult * embedDim, embedDim),
             getActivationLayer(activation, embedDim = embedDim)
         )

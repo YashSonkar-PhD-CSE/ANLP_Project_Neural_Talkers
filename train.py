@@ -1,6 +1,8 @@
 from src.utils import makeTrainParser, TrainArgs, getTokenizer
 from src.config import getModelConfig
+import os
 
+os.environ['CUDA_LAUNCH_BLOCKING']="1"
 def main():
     parser = makeTrainParser()
     args: TrainArgs = parser.parse_args() # type: ignore

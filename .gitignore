@@ -4,3 +4,6 @@ main.py
 __pycache__/
 *.pyc
 *.cpy
+runs/*
+checkpoints/*
+temp.py

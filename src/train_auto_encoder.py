@@ -3,6 +3,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 import logging
 import os
+from tqdm import tqdm
 
 from .config import ModelConfig
 from .datasets import BaseDataset
@@ -11,6 +12,7 @@ from .utils import maskInput
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
 
 def trainAutoEncoderStage(
     model: TextTransformerModel,
@@ -27,7 +29,7 @@ def trainAutoEncoderStage(
     numEpochs: int = 10,
     padToken: int = 0,
     device: torch.device = torch.device("cpu"),
-    tokenizer = None  # Optional decode method
+    tokenizer = None
 ):
     model.to(device)
     model.train()
@@ -37,7 +39,7 @@ def trainAutoEncoderStage(
         logger.info(f"Epoch: {epoch + 1}")
         for lang in trainDataset.languages:
             trainBatches = trainDataset.getLanguageBatches(lang, batchSize)
-            for batch in trainBatches:
+            for batch in tqdm(trainBatches, desc=f"Train [{lang}] Epoch {epoch+1}", leave=False):
                 batchData = trainDataset.collateFn(batch)
                 original = batchData["tokens"].to(device)
                 masked = maskInput(original, padToken=padToken)
@@ -53,7 +55,6 @@ def trainAutoEncoderStage(
                 loss = criterion(
                     output.view(-1, output.size(-1)),
                     original.view(-1),
-                    ignore_index=padToken
                 )
 
                 with torch.no_grad():
@@ -76,7 +77,7 @@ def trainAutoEncoderStage(
             valBatches = validDataset.getLanguageBatches(lang, batchSize)
             valLoss, valAcc, valTokens = 0.0, 0.0, 0
             with torch.no_grad():
-                for batch in valBatches:
+                for batch in tqdm(valBatches, desc=f"Val [{lang}] Epoch {epoch+1}", leave=False):
                     batchData = validDataset.collateFn(batch)
                     original = batchData["tokens"].to(device)
                     masked = maskInput(original, padToken=padToken)
@@ -91,7 +92,6 @@ def trainAutoEncoderStage(
                     loss = criterion(
                         output.view(-1, output.size(-1)),
                         original.view(-1),
-                        ignore_index=padToken
                     )
 
                     preds = output.argmax(dim=-1)
@@ -122,6 +122,7 @@ def trainAutoEncoderStage(
             torch.save(model.state_dict(), f"{checkpointDir}/autoencoder_epoch{epoch+1}.pt")
 
         model.train()
+
 
 def startTrain(
     root: str,

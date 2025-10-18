@@ -22,6 +22,7 @@ class TextEncoder(torch.nn.Module):
         self.dropout = self.config.encoderConfig.dropout
         self.activation = self.config.encoderConfig.activation
         self.peType = self.config.peType
+        self.vocabSize = vocabSize
 
         self.layers = torch.nn.ModuleList()
         self.tokenEmbedding = torch.nn.Embedding(vocabSize, self.config.embedDim)
@@ -38,6 +39,7 @@ class TextEncoder(torch.nn.Module):
             ))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        assert x.min() >= 0 and x.max() < self.vocabSize, f"{x.min()}, {x.max()}, {self.vocabSize}"
         x = self.tokenEmbedding(x)
         if self.peType != "rope" and self.posEncoder is not None:
             x = self.posEncoder(x)
@@ -67,10 +69,6 @@ class EncoderLayer(torch.nn.Module):
         self.posEncoder = posEncoder
 
         self.qkvProj = torch.nn.Linear(embedDim, 3 * embedDim)
-        self.activation = getActivationLayer(
-            activation,
-            embedDim = embedDim, # Required by SwiGLU
-        )
         self.scale: float = embedDim ** -0.5 
         self.softmax = torch.nn.Softmax(dim = -1)
         self.norm1 = torch.nn.LayerNorm(embedDim)
@@ -78,9 +76,9 @@ class EncoderLayer(torch.nn.Module):
         # Calculate q, k & v matrices
         self.ffn = torch.nn.Sequential(
             torch.nn.Linear(embedDim, ffMult * embedDim),
-            self.activation,
+            getActivationLayer(activation, embedDim = ffMult * embedDim),
             torch.nn.Linear(ffMult * embedDim, embedDim),
-            self.activation
+            getActivationLayer(activation, embedDim = embedDim),
         )
 
     def forward(
@@ -89,9 +87,7 @@ class EncoderLayer(torch.nn.Module):
     ):
         # x: [B, N, embedDim]
         B, N, D = x.size()
-        print(x.size())
         qkv: torch.Tensor = self.qkvProj(x) # [B, N, 3 * embedDim]
-        print(qkv.size())
         q = qkv[..., :self.embedDim] # [B, N, embedDim]
         k = qkv[..., self.embedDim: 2 * self.embedDim] # [B, N, embedDim]
         v = qkv[..., 2 * self.embedDim: ] # [B, N, embedDim]

@@ -94,7 +94,7 @@ def makeTrainParser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--batch-size",
         type = int,
-        default = 32
+        default = 4
     )
     parser.add_argument(
         "--save-interval",
