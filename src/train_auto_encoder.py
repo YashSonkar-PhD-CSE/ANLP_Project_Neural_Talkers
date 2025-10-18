@@ -10,6 +10,7 @@ from .datasets import BaseDataset
 from .model import TextTransformerModel
 from .utils import maskInput
 
+logging.basicConfig(filename = "./autoencoder_phase1_logs.txt")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -181,4 +182,5 @@ def startTrain(
         numEpochs = numEpochs,
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
         padToken = padTokenIdx,
+        tokenizer = tokenizer
     )

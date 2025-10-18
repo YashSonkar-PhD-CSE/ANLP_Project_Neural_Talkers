@@ -1,5 +1,5 @@
 import math
-from typing import Dict, Any, Optional, Type, Tuple
+from typing import Dict, Any, Optional, Type, Tuple, Union
 import torch
 
 from .constants import PE_TYPES
@@ -119,6 +119,6 @@ CLS_MAP: Dict[PE_TYPES, Optional[Type[PositionalEncoding]]] = {
     "none": None
 }
     
-def getPositionEncoder(peType: PE_TYPES, **kwargs: Any) -> PositionalEncoding | torch.nn.Module:
+def getPositionEncoder(peType: PE_TYPES, **kwargs: Any) -> Union[PositionalEncoding, torch.nn.Module]:
     cls = CLS_MAP.get(peType)
     return cls(**kwargs) if cls is not None else torch.nn.Identity()
