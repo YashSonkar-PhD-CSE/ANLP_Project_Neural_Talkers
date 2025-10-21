@@ -1,9 +1,9 @@
 import torch
 from typing import Dict, Any, Optional, Union
 
-from .utils import getActivationLayer
-from .config import ModelConfig
-from .constants import ACTIVATIONS
+from ..utils import getActivationLayer
+from ..config import ModelConfig
+from ..constants import ACTIVATIONS
 from .position_encodings import RotaryPositionalEncoding, PositionalEncoding
 
 class TextEncoder(torch.nn.Module):

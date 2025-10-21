@@ -4,9 +4,9 @@ import torch
 from src.utils import getActivationLayer
 
 from .encoder import EncoderLayer
-from .constants import ACTIVATIONS
+from ..constants import ACTIVATIONS
 from .position_encodings import PositionalEncoding, getPositionEncoder
-from .config import ModelConfig
+from ..config import ModelConfig
 
 class TextDecoder(torch.nn.Module):
     def __init__(

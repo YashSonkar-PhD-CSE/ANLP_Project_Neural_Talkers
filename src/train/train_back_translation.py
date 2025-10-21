@@ -5,9 +5,9 @@ import logging
 import os
 from tqdm import tqdm
 
-from .config import ModelConfig
-from .datasets import BaseDataset
-from .model import TextTransformerModel
+from ..config import ModelConfig
+from ..datasets import BaseDataset
+from ..models.ar_model import TextTransformerModel
 
 logging.basicConfig(filename = "./backtranslation_phase2_logs.txt")
 logger = logging.getLogger(__name__)

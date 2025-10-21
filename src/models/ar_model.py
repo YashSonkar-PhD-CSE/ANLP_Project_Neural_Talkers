@@ -1,11 +1,11 @@
 import torch
 from typing import Optional
 
-from .position_encodings import getPositionEncoder
-from .config import ModelConfig, EncoderConfig, DecoderConfig
-from .constants import FORWARD_MODES
-from .encoder import TextEncoder
-from .decoder import TextDecoder
+from ..modules.position_encodings import getPositionEncoder
+from ..config import ModelConfig, EncoderConfig, DecoderConfig
+from ..constants import FORWARD_MODES
+from ..modules.encoder import TextEncoder
+from ..modules.decoder import TextDecoder
 
 class TextTransformerModel(torch.nn.Module):
     def __init__(

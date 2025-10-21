@@ -5,10 +5,10 @@ import logging
 import os
 from tqdm import tqdm
 
-from .config import ModelConfig
-from .datasets import BaseDataset
-from .model import TextTransformerModel
-from .utils import maskInput
+from ..config import ModelConfig
+from ..datasets import BaseDataset
+from ..models.ar_model import TextTransformerModel
+from ..utils import maskInput
 
 logging.basicConfig(filename = "./autoencoder_phase1_logs.txt")
 logger = logging.getLogger(__name__)

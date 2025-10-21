@@ -48,6 +48,21 @@ def maskInput(
             masked[i, dropIndices] = padToken
     return masked
 
+def glanceInput(
+    tokens: torch.Tensor, 
+    padToken: int, 
+    keepFraction: float
+):
+    mask = (tokens != padToken)
+    glanced = tokens.clone()
+    for i in range(tokens.size(0)):
+        valid = mask[i].nonzero(as_tuple=True)[0]
+        keepCount = int(keepFraction * len(valid))
+        keepIndices = random.sample(valid.tolist(), keepCount)
+        dropIndices = list(set(valid.tolist()) - set(keepIndices))
+        glanced[i, dropIndices] = padToken
+    return glanced
+
 def makeTrainParser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(

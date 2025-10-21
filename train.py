@@ -23,7 +23,7 @@ def main():
     config.padToken = specialTokenIds["pad_token_id"] # type: ignore
 
     if args.train_phase == "autoencoder":
-        from src.train_auto_encoder import startTrain
+        from src.train.train_auto_encoder import startTrain
 
         startTrain(
             root = args.data_root,
@@ -38,7 +38,7 @@ def main():
         )
         
     else:
-        from src.train_back_translation import startTrain
+        from src.train.train_back_translation import startTrain
         startTrain(
             root = args.data_root,
             languages = languages,
