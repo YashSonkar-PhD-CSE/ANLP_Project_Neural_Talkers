@@ -12,7 +12,7 @@ def main():
     config = getModelConfig(
         args.model_config,
         languages = languages,
-        vocabSize = 5000
+        vocabSize = 5000,
     )
 
     tokenizer = getTokenizer(args.tokenizer)
@@ -21,37 +21,45 @@ def main():
     specialTokenIds = tokenizer.get_special_token_ids()
     config.startToken = specialTokenIds["bos_token_id"] # type: ignore
     config.padToken = specialTokenIds["pad_token_id"] # type: ignore
+    config.useNAR = args.useNAR
+    
+    if config.useNAR:
+        if args.train_phase == "autoencoder":
+            from src.train.train_auto_encoder import startTrain
 
-    if args.train_phase == "autoencoder":
-        from src.train.train_auto_encoder import startTrain
-
-        startTrain(
-            root = args.data_root,
-            languages = languages,
-            tokenizer = tokenizer,
-            modelConfig = config,
-            numEpochs = args.num_epochs,
-            checkpointDir = args.checkpoint_path,
-            shouldLog = args.log,
-            batchSize = args.batch_size,
-            saveInterval = args.save_interval
-        )
-        
+            startTrain(
+                root = args.data_root,
+                languages = languages,
+                tokenizer = tokenizer,
+                modelConfig = config,
+                numEpochs = args.num_epochs,
+                checkpointDir = args.checkpoint_path,
+                shouldLog = args.log,
+                batchSize = args.batch_size,
+                saveInterval = args.save_interval
+            )
+            
+        else:
+            from src.train.train_back_translation import startTrain
+            startTrain(
+                root = args.data_root,
+                languages = languages,
+                tokenizer = tokenizer,
+                modelConfig = config,
+                numEpochs = args.num_epochs,
+                checkpointDir = args.checkpoint_path,
+                shouldLog = args.log,
+                batchSize = args.batch_size,
+                saveInterval = args.save_interval,
+                autoencoderCheckpoint = args.autoencoder_checkpoint
+            )
     else:
-        from src.train.train_back_translation import startTrain
-        startTrain(
-            root = args.data_root,
-            languages = languages,
-            tokenizer = tokenizer,
-            modelConfig = config,
-            numEpochs = args.num_epochs,
-            checkpointDir = args.checkpoint_path,
-            shouldLog = args.log,
-            batchSize = args.batch_size,
-            saveInterval = args.save_interval,
-            autoencoderCheckpoint = args.autoencoder_checkpoint
-        )
-
+        # TODO: Implement NAR training
+        if args.train_phase == "autoencoder":
+            from train.train_nar_auto_encoder import *
+        else:
+            from train.train_nar_back_translation import *
+        
 
 if __name__ == "__main__":
     main()

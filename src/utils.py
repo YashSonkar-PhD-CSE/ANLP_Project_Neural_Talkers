@@ -122,6 +122,11 @@ def makeTrainParser() -> argparse.ArgumentParser:
         default = None,
         help = "Path to pretrained autoencoder checkpoint"
     )
+    parser.add_argument(
+        '--use-nar',
+        action = "store_true",
+        help = "Use NAR model for training/evaluation/inference."
+    )
     return parser
 
 # Typed namepsace to enable syntax highlighting and auto-completes with IDEs when using args
@@ -138,6 +143,7 @@ class TrainArgs(argparse.Namespace):
     tokenizer: TOKENIZERS
     save_interval: int
     autoencoder_checkpoint: Optional[str]
+    use_nar: bool
 
 def getTokenizer(tokenizerType: TOKENIZERS, maxLength: int = 512) -> TokenizerModule:
     tokenizerName = ""
