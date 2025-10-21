@@ -2,7 +2,7 @@ import math
 from typing import Dict, Any, Optional, Type, Tuple, Union
 import torch
 
-from .constants import PE_TYPES
+from ..constants import PE_TYPES
 
 class PositionalEncoding(torch.nn.Module):
     def __init__(

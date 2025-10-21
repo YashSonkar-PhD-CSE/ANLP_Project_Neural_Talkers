@@ -8,7 +8,7 @@ from collections import Counter
 
 from ..config import ModelConfig
 from ..datasets import BaseDataset
-from ..models.nar_model import TextTransformerModel
+from ..models.nar_model import NARTextTransformerModel
 from ..utils import glanceInput, frequencyMaskInput
 
 logging.basicConfig(filename="./nar_autoencoder_phase1_logs.txt")
@@ -27,7 +27,7 @@ def computeTokenFrequencies(dataset: BaseDataset, padToken: int) -> Counter:
 
 
 def trainNARAutoEncoderStage(
-    model: TextTransformerModel,
+    model: NARTextTransformerModel,
     trainDataset: BaseDataset,
     validDataset: BaseDataset,
     optimizer: torch.optim.Optimizer,
@@ -161,7 +161,7 @@ def startTrain(
     import os
     from torch.utils.tensorboard import SummaryWriter
     from ..datasets import BaseDataset
-    from ..models.nar_model import TextTransformerModel
+    from ..models.nar_model import NARTextTransformerModel
     from ..train_nar_autoencoder import trainNARAutoEncoderStage
 
     os.makedirs(checkpointDir, exist_ok=True)
@@ -181,7 +181,7 @@ def startTrain(
         name=f"{languages[0]}_{languages[1]}_valid_dataset",
     )
 
-    model = TextTransformerModel(modelConfig=modelConfig)
+    model = NARTextTransformerModel(modelConfig=modelConfig)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(

@@ -23,11 +23,11 @@ def main():
     specialTokenIds = tokenizer.get_special_token_ids()
     config.startToken = specialTokenIds["bos_token_id"]  # type: ignore
     config.padToken = specialTokenIds["pad_token_id"]    # type: ignore
-    config.useNAR = args.useNAR
+    config.useNAR = args.use_nar
 
     if config.useNAR:
         if args.train_phase == "autoencoder":
-            from train.train_nar_auto_encoder import startTrain
+            from src.train.train_nar_auto_encoder import startTrain
 
             startTrain(
                 root=args.data_root,
@@ -41,7 +41,7 @@ def main():
                 saveInterval=args.save_interval
             )
         else:
-            from train.train_nar_back_translation import startTrain
+            from src.train.train_nar_back_translation import startTrain
             startTrain(
                 root=args.data_root,
                 languages=languages,
