@@ -36,6 +36,7 @@ The datasets can be downloaded and saved using `download_dataset.py` in `data` f
 
 Sample usage of `download_dataset.py` to download english-latin corpus is as:
 ```bash
+cd data
 python download_dataset.py --corpus en_la \ 
     --num-train-samples 100000 --num-test-samples 500
 ```
