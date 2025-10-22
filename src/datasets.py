@@ -98,12 +98,12 @@ class BaseDataset(torch.utils.data.Dataset):
     def getLanguages(self) -> Tuple[str, str]:
         return self.languages
     
-    def collateFn(self, batch: List[DataItem]) -> Dict[str, torch.Tensor]:
+    def collateFn(self, batch: List[DataItem], padTokenIdx: int = 0) -> Dict[str, torch.Tensor]:
         tokenIds = [item.tokenIds for item in batch]
         padded = torch.nn.utils.rnn.pad_sequence(
             tokenIds, 
             batch_first=True, 
-            padding_value = 0
+            padding_value = padTokenIdx
         )
         langIds = torch.LongTensor([self.langToId[item.language] for item in batch])
         return {"tokens": padded, "languages": langIds}

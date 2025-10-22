@@ -15,16 +15,14 @@ logging.basicConfig(filename="./nar_autoencoder_phase1_logs.txt")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-
 def computeTokenFrequencies(dataset: BaseDataset, padToken: int) -> Counter:
     counter = Counter()
     for lang in dataset.languages:
         for batch in dataset.getLanguageBatches(lang, batchSize=64):
             for sample in batch:
-                tokens = sample["tokens"]
+                tokens = sample.tokenIds
                 counter.update([t for t in tokens if t != padToken])
     return counter
-
 
 def trainNARAutoEncoderStage(
     model: NARTextTransformerModel,
@@ -57,7 +55,7 @@ def trainNARAutoEncoderStage(
         for lang in trainDataset.languages:
             trainBatches = trainDataset.getLanguageBatches(lang, batchSize)
             for batch in tqdm(trainBatches, desc=f"NAR Train [{lang}] Epoch {epoch+1}", leave=False):
-                batchData = trainDataset.collateFn(batch)
+                batchData = trainDataset.collateFn(batch, padTokenIdx=padToken)
                 original = batchData["tokens"].to(device)
 
                 glanced = glanceInput(original, padToken=padToken, keepFraction=glanceFraction)
@@ -158,12 +156,6 @@ def startTrain(
     batchSize: int,
     saveInterval: int
 ):
-    import os
-    from torch.utils.tensorboard import SummaryWriter
-    from ..datasets import BaseDataset
-    from ..models.nar_model import NARTextTransformerModel
-    from ..train_nar_autoencoder import trainNARAutoEncoderStage
-
     os.makedirs(checkpointDir, exist_ok=True)
 
     trainDataset = BaseDataset(
