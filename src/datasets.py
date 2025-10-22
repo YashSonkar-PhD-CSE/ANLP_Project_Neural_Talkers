@@ -3,8 +3,13 @@ from typing import Tuple, List, Dict, Union
 from dataclasses import dataclass
 import os
 import random
+import logging
+from tqdm import tqdm
 
 from .constants import DATA_SPLITS
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 @dataclass
 class DataItem:
@@ -18,16 +23,33 @@ class BaseDataset(torch.utils.data.Dataset):
     A base dataset class that will serve as parent class for all other dataset classes.
     This class will define basic methods that are common for all other classes.
     Expected dataset folder structure:
-    - data:
+    - data_root:
         - lang1:
-            - 1.txt
-            - 2.txt
-            ...
+            - train
+                - 1.txt
+                - 2.txt
+                ...
+            - valid
+                - 1.txt
+                - 2.txt
+                ...
+            - test
+                - 1.txt
+                - 2.txt
+                ...
         - lang2:
-            - 1.txt
-            - 2.txt
-        ...
-
+            - train
+                - 1.txt
+                - 2.txt
+                ...
+            - valid
+                - 1.txt
+                - 2.txt
+                ...
+            - test
+                - 1.txt
+                - 2.txt
+                ...
     Note: The txt files need not be paired
     
     Args:
@@ -39,7 +61,7 @@ class BaseDataset(torch.utils.data.Dataset):
     """
     def __init__(
         self,
-        languages: Tuple[str, str] = ("en", "fr"),
+        languages: Tuple[str, str] = ("en", "la"),
         dataRoot: str = "../data/",
         split: DATA_SPLITS = "valid",
         tokenizer: torch.nn.Module = torch.nn.Identity(),
@@ -55,7 +77,8 @@ class BaseDataset(torch.utils.data.Dataset):
         self.langToId = {lang: i for i, lang in enumerate(languages)}
         for lang in languages:
             langPath = os.path.join(self.dataPath, lang)
-            for file in os.listdir(langPath):
+            logger.info(f"Loading samples for language '{lang}' from: {langPath} for split: {split}")
+            for file in tqdm(os.listdir(langPath), desc=f"Loading [{lang}] files", leave=False):
                 if not file.endswith('.txt'):
                     continue
                 with open(os.path.join(langPath, file), "r", encoding="utf-8") as f:
