@@ -51,7 +51,7 @@ class NARTextTransformerModel(torch.nn.Module):
         decoder: TextDecoder = self.decoder[targetLang] # type: ignore
 
         if mode == "reconstruct":
-            return decoder(srcTokens, encoderOut) # reconstruct source
+            return decoder(encoderOut, srcTokens) # reconstruct source
         elif mode == "translate":
             if tgtTokens is not None:
                 return decoder(tgtTokens, encoderOut) # generate target

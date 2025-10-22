@@ -141,7 +141,7 @@ def startTrain(
         dataRoot = root,
         languages = languages,
         tokenizer = tokenizer,
-        split = "test",
+        split = "train",
         name = f"{languages[0]}_{languages[1]}_train_dataset",
     )
     validDataset = BaseDataset(
