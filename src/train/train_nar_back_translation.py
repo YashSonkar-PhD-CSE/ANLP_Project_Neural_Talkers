@@ -4,19 +4,28 @@ from torch.utils.tensorboard import SummaryWriter
 import logging
 import os
 from tqdm import tqdm
+from collections import Counter
 
 from ..config import ModelConfig
 from ..datasets import BaseDataset
-from ..models.ar_model import TextTransformerModel
-from ..utils import maskInput
+from ..models.nar_model import NARTextTransformerModel
+from ..utils import glanceInput, frequencyMaskInput
 
-logging.basicConfig(filename = "./autoencoder_phase1_logs.txt")
+logging.basicConfig(filename="./nar_backtranslation_phase2_logs.txt")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+def computeTokenFrequencies(dataset: BaseDataset, padToken: int) -> Counter:
+    counter = Counter()
+    for lang in dataset.languages:
+        for batch in dataset.getLanguageBatches(lang, batchSize=64):
+            for sample in batch:
+                tokens = sample.tokenIds
+                counter.update([t for t in tokens if t != padToken])
+    return counter
 
-def trainAutoEncoderStage(
-    model: TextTransformerModel,
+def trainNARAutoEncoderStage(
+    model: NARTextTransformerModel,
     trainDataset: BaseDataset,
     validDataset: BaseDataset,
     optimizer: torch.optim.Optimizer,
@@ -30,20 +39,27 @@ def trainAutoEncoderStage(
     numEpochs: int = 10,
     padToken: int = 0,
     device: torch.device = torch.device("cpu"),
-    tokenizer = None
+    tokenizer=None,
+    glanceFraction: float = 0.5,
+    freqMaskFraction: float = 0.3
 ):
     model.to(device)
     model.train()
     globalStep = 0
 
+    logger.info("Computing token frequencies for frequency-based masking...")
+    tokenFreqs = computeTokenFrequencies(trainDataset, padToken)
+
     for epoch in range(numEpochs):
         logger.info(f"Epoch: {epoch + 1}")
         for lang in trainDataset.languages:
             trainBatches = trainDataset.getLanguageBatches(lang, batchSize)
-            for batch in tqdm(trainBatches, desc=f"Train [{lang}] Epoch {epoch+1}", leave=False):
+            for batch in tqdm(trainBatches, desc=f"NAR Train [{lang}] Epoch {epoch+1}", leave=False):
                 batchData = trainDataset.collateFn(batch)
                 original = batchData["tokens"].to(device)
-                masked = maskInput(original, padToken=padToken)
+
+                glanced = glanceInput(original, padToken=padToken, keepFraction=glanceFraction)
+                masked = frequencyMaskInput(glanced, padToken=padToken, tokenFreqs=tokenFreqs, maskFraction=freqMaskFraction)
 
                 optimizer.zero_grad()
                 output = model.forward(
@@ -66,6 +82,7 @@ def trainAutoEncoderStage(
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=clipNorm)
                 optimizer.step()
+
                 if writer is not None:
                     writer.add_scalar(f"{lang}/train/loss", loss.item(), globalStep)
                     writer.add_scalar(f"{lang}/train/accuracy", accuracy, globalStep)
@@ -78,10 +95,12 @@ def trainAutoEncoderStage(
             valBatches = validDataset.getLanguageBatches(lang, batchSize)
             valLoss, valAcc, valTokens = 0.0, 0.0, 0
             with torch.no_grad():
-                for batch in tqdm(valBatches, desc=f"Val [{lang}] Epoch {epoch+1}", leave=False):
+                for batch in tqdm(valBatches, desc=f"NAR Val [{lang}] Epoch {epoch+1}", leave=False):
                     batchData = validDataset.collateFn(batch)
                     original = batchData["tokens"].to(device)
-                    masked = maskInput(original, padToken=padToken)
+
+                    glanced = glanceInput(original, padToken=padToken, keepFraction=glanceFraction)
+                    masked = frequencyMaskInput(glanced, padToken=padToken, tokenFreqs=tokenFreqs, maskFraction=freqMaskFraction)
 
                     output = model.forward(
                         srcTokens=masked,
@@ -100,6 +119,7 @@ def trainAutoEncoderStage(
                     valLoss += loss.item()
                     valAcc += correct.sum().item()
                     valTokens += (original != padToken).sum().item()
+
             if writer is not None:
                 writer.add_scalar(f"{lang}/val/loss", valLoss / valTokens, epoch)
                 writer.add_scalar(f"{lang}/val/accuracy", valAcc / valTokens, epoch)
@@ -109,7 +129,8 @@ def trainAutoEncoderStage(
             # Log sample reconstruction
             sample = validDataset.getRandomSample(lang)
             original = sample.tokenIds.unsqueeze(0).to(device)
-            masked = maskInput(original, padToken=padToken)
+            glanced = glanceInput(original, padToken=padToken, keepFraction=glanceFraction)
+            masked = frequencyMaskInput(glanced, padToken=padToken, tokenFreqs=tokenFreqs, maskFraction=freqMaskFraction)
             with torch.no_grad():
                 output = model(srcTokens=masked, tgtTokens=None, targetLang=lang, mode="reconstruct")
                 preds = output.argmax(dim=-1)
@@ -120,10 +141,9 @@ def trainAutoEncoderStage(
                 writer.add_text(f"{lang}/reconstruction/predicted", tokenizer.decode(preds.squeeze().tolist()), epoch)
 
         if (epoch + 1) % saveInterval == 0:
-            torch.save(model.state_dict(), f"{checkpointDir}/autoencoder_epoch{epoch+1}.pt")
+            torch.save(model.state_dict(), f"{checkpointDir}/nar_autoencoder_epoch{epoch+1}.pt")
 
         model.train()
-
 
 def startTrain(
     root: str,
@@ -134,53 +154,63 @@ def startTrain(
     checkpointDir: str,
     shouldLog: bool,
     batchSize: int,
-    saveInterval: int
+    saveInterval: int,
+    autoencoderCheckpoint: Optional[str] = None
 ):
-    os.makedirs(checkpointDir, exist_ok = True)
+    os.makedirs(checkpointDir, exist_ok=True)
+
     trainDataset = BaseDataset(
-        dataRoot = root,
-        languages = languages,
-        tokenizer = tokenizer,
-        split = "train",
-        name = f"{languages[0]}_{languages[1]}_train_dataset",
+        dataRoot=root,
+        languages=languages,
+        tokenizer=tokenizer,
+        split="train",
+        name=f"{languages[0]}_{languages[1]}_train_dataset",
     )
     validDataset = BaseDataset(
-        dataRoot = root,
-        languages = languages,
-        tokenizer = tokenizer,
-        split = "valid",
-        name = f"{languages[0]}_{languages[1]}_valid_dataset",
+        dataRoot=root,
+        languages=languages,
+        tokenizer=tokenizer,
+        split="valid",
+        name=f"{languages[0]}_{languages[1]}_valid_dataset",
     )
-    
-    model = TextTransformerModel(modelConfig = modelConfig)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr = 1e-4)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=numEpochs, eta_min=1e-6)
+    model = NARTextTransformerModel(modelConfig=modelConfig)
+    if autoencoderCheckpoint is not None:
+        modelStateDict = torch.load(autoencoderCheckpoint, weights_only=True)
+        model.load_state_dict(modelStateDict)
+    else:
+        logger.warning("No checkpoint provided, model performance will be poor")
+    
+    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=0.01)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=numEpochs // 2, T_mult=1, eta_min=1e-5
+    )
     clipNorm = 1.0
-    writer = None
-    if shouldLog:
-        writer = SummaryWriter(log_dir = "runs/autoencoder_phase1")
+
+    writer = SummaryWriter(log_dir="runs/nar_autoencoder_phase1") if shouldLog else None
 
     padTokenIdx = modelConfig.padToken
     criterion = torch.nn.CrossEntropyLoss(
-        label_smoothing = 0.1,
-        ignore_index = padTokenIdx,
+        ignore_index=padTokenIdx,
+        reduction="mean"
     )
 
-    trainAutoEncoderStage(
-        model = model,
-        trainDataset = trainDataset,
-        validDataset = validDataset,
-        optimizer = optimizer,
-        criterion = criterion,
-        batchSize = batchSize,
-        scheduler = scheduler,
-        clipNorm = clipNorm,
-        saveInterval = saveInterval,
-        writer = writer,
-        checkpointDir = checkpointDir,
-        numEpochs = numEpochs,
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-        padToken = padTokenIdx,
-        tokenizer = tokenizer
+    trainNARAutoEncoderStage(
+        model=model,
+        trainDataset=trainDataset,
+        validDataset=validDataset,
+        optimizer=optimizer,
+        criterion=criterion,
+        batchSize=batchSize,
+        scheduler=scheduler,
+        clipNorm=clipNorm,
+        saveInterval=saveInterval,
+        writer=writer,
+        checkpointDir=checkpointDir,
+        numEpochs=numEpochs,
+        device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+        padToken=padTokenIdx,
+        tokenizer=tokenizer,
+        glanceFraction=0.5,
+        freqMaskFraction=0.3
     )

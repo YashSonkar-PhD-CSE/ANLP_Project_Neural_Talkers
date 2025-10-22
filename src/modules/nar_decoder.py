@@ -49,8 +49,8 @@ class NARTextDecoder(torch.nn.Module):
 
     def forward(
         self,
-        tgtTokens: Optional[torch.Tensor],  # Can be None during inference
         encoderOut: torch.Tensor,
+        tgtTokens: Optional[torch.Tensor],  # Can be None during inference
         maxLen: Optional[int] = None
     ) -> torch.Tensor:
         B, S, D = encoderOut.size()

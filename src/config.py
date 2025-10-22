@@ -11,15 +11,6 @@ class DataConfig:
     tokenizer: torch.nn.Module
     dataRoot: str
 
-# @dataclass
-# class TrainConfig:
-#     dataConfig: DataConfig = DataConfig(
-#         languages = ("en", "fr"),
-#         name = "En_Fr",
-#         tokenizer = torch.nn.Identity(),
-#         dataRoot = "../data/"
-#     )
-
 @dataclass
 class EncoderConfig:
     nLayers: int = 6
@@ -36,6 +27,7 @@ class DecoderConfig:
 
 @dataclass
 class ModelConfig:
+    useNAR: bool = False
     embedDim: int = 512
     peType: PE_TYPES = "rope"
     maxSeqLen: int = 5000
@@ -53,8 +45,8 @@ def getModelConfig(
     languages: Tuple[str, str],
     vocabSize: int
 ) -> ModelConfig:
-    # TODO: Return proper model configs from here
     return ModelConfig(
+        useNAR = "nar" in configName.lower(),
         languages = languages,
         vocabSize = vocabSize,
     )

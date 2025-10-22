@@ -1,7 +1,7 @@
 import torch
 import random
 import argparse
-from typing import Literal, Optional
+from typing import Literal, Optional, Dict
 
 from .tokenizers import TokenizerModule
 from .constants import ACTIVATIONS, LANGUAGES, TOKENIZERS
@@ -63,6 +63,23 @@ def glanceInput(
         glanced[i, dropIndices] = padToken
     return glanced
 
+def frequencyMaskInput(
+    tokens: torch.Tensor,
+    padToken: int,
+    tokenFreqs: Dict[int, int],
+    maskFraction: float = 0.3
+) -> torch.Tensor:
+    B, T = tokens.size()
+    masked = tokens.clone()
+    for i in range(B):
+        valid = (tokens[i] != padToken).nonzero(as_tuple=True)[0]
+        scores = torch.tensor([tokenFreqs.get(tokens[i, j].item(), 1) for j in valid], dtype=torch.float) # type: ignore
+        probs = scores / scores.sum()
+        maskCount = int(maskFraction * len(valid))
+        maskIndices = torch.multinomial(probs, maskCount, replacement=False)
+        masked[i, valid[maskIndices]] = padToken
+    return masked
+
 def makeTrainParser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -122,6 +139,11 @@ def makeTrainParser() -> argparse.ArgumentParser:
         default = None,
         help = "Path to pretrained autoencoder checkpoint"
     )
+    parser.add_argument(
+        '--use-nar',
+        action = "store_true",
+        help = "Use NAR model for training/evaluation/inference."
+    )
     return parser
 
 # Typed namepsace to enable syntax highlighting and auto-completes with IDEs when using args
@@ -138,6 +160,7 @@ class TrainArgs(argparse.Namespace):
     tokenizer: TOKENIZERS
     save_interval: int
     autoencoder_checkpoint: Optional[str]
+    use_nar: bool
 
 def getTokenizer(tokenizerType: TOKENIZERS, maxLength: int = 512) -> TokenizerModule:
     tokenizerName = ""
