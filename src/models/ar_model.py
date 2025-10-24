@@ -79,7 +79,7 @@ class TextTransformerModel(torch.nn.Module):
             nextToken = logits[:, -1].argmax(dim = -1, keepdim = True) # [B, 1]
             generated = torch.cat([generated, nextToken], dim = 1)
 
-            if (nextToken == self.config.padToken).all():
+            if hasattr(self.config, 'eosToken') and (nextToken == self.config.eosToken).all():
                 break
         
         return generated

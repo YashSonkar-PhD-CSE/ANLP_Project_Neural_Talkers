@@ -28,10 +28,10 @@ class DecoderConfig:
 @dataclass
 class ModelConfig:
     useNAR: bool = False
-    embedDim: int = 512
+    embedDim: int = 256
     peType: PE_TYPES = "rope"
-    maxSeqLen: int = 5000
-    nHeads: int = 8
+    maxSeqLen: int = 512
+    nHeads: int = 4
     encoderConfig: EncoderConfig = field(default_factory=EncoderConfig)
     decoderConfig: DecoderConfig = field(default_factory=DecoderConfig)
     languages: Tuple[str, str] = tuple()
