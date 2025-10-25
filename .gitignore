@@ -7,3 +7,5 @@ __pycache__/
 runs/*
 checkpoints/*
 temp.py
+checkpoints_old/*
+runs_old/*

@@ -77,10 +77,10 @@ class SinusoidalPositionalEncoding(PositionalEncoding):
     ):
         super().__init__("sinusoidal", **kwargs)
 
-        position = torch.arange(self.maxSeqLen).unsqueeze(1) # [maxSeqLen, 1]
+        position = torch.arange(self.maxSeqLen + 1).unsqueeze(1) # [maxSeqLen + 1, 1]
         den = torch.exp(torch.arange(0, self.embedDim, 2) * (-math.log(10_000.0) / self.embedDim)) # [embedDim / 2]
 
-        pe = torch.zeros(self.maxSeqLen, self.embedDim)
+        pe = torch.zeros(self.maxSeqLen + 1, self.embedDim)
         pe[:, 0::2] = torch.sin(position * den)
         pe[:, 1::2] = torch.cos(position * den)
 
