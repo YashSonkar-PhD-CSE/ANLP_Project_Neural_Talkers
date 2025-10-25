@@ -23,6 +23,7 @@ def main():
     specialTokenIds = tokenizer.get_special_token_ids()
     config.startToken = specialTokenIds["bos_token_id"]  # type: ignore
     config.padToken = specialTokenIds["pad_token_id"]    # type: ignore
+    config.eosToken = specialTokenIds["eos_token_id"]    # type: ignore
     config.useNAR = args.use_nar
 
     if config.useNAR:
