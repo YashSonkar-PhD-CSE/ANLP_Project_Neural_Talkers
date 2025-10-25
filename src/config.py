@@ -38,7 +38,8 @@ class ModelConfig:
     vocabSize: int = 50000
     startToken: int = 1
     padToken: int = 0
-
+    eosToken: int = 2
+    
 
 def getModelConfig(
     configName: str,

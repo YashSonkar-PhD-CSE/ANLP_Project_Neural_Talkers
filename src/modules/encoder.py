@@ -40,10 +40,7 @@ class TextEncoder(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         assert x.min() >= 0 and x.max() < self.vocabSize, f"{x.min()}, {x.max()}, {self.vocabSize}"
-        print("Input to encoder:", x.shape, x.dtype)
         x = self.tokenEmbedding(x)
-        print("After embedding:", x.shape)
-        assert x.dim() == 3, f"Expected [B, S, D], got {x.shape}"
         if self.peType != "rope" and self.posEncoder is not None:
             x = self.posEncoder(x)
         for layer in self.layers:

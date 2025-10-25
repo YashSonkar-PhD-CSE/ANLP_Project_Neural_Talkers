@@ -53,10 +53,7 @@ def trainBackTranslationStage(
                     tgtTokens = None,
                     targetLang = outputLang,
                     mode = "translate"
-                ).argmax(dim = -1)
-
-                if outputHypothesis.dim() == 1:
-                    outputHypothesis = outputHypothesis.unsqueeze(0)
+                )
 
                 # output lang -> input lang
                 reconstruction = model.forward(
