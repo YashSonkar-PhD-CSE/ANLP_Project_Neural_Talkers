@@ -13,25 +13,25 @@ class DataConfig:
 
 @dataclass
 class EncoderConfig:
-    nLayers: int = 6
-    ffMult: int = 4
+    nLayers: int = 4
+    ffMult: int = 2
     dropout: float = 0.05
-    activation: ACTIVATIONS = "swiglu"
+    activation: ACTIVATIONS = "relu"
 
 @dataclass
 class DecoderConfig:
-    nLayers: int = 6
-    ffMult: int = 4
+    nLayers: int = 4
+    ffMult: int = 2
     dropout: float = 0.05
-    activation: ACTIVATIONS = "swiglu"
+    activation: ACTIVATIONS = "relu"
 
 @dataclass
 class ModelConfig:
     useNAR: bool = False
-    embedDim: int = 512
-    peType: PE_TYPES = "rope"
-    maxSeqLen: int = 5000
-    nHeads: int = 8
+    embedDim: int = 256
+    peType: PE_TYPES = "sinusoidal"
+    maxSeqLen: int = 512
+    nHeads: int = 4
     encoderConfig: EncoderConfig = field(default_factory=EncoderConfig)
     decoderConfig: DecoderConfig = field(default_factory=DecoderConfig)
     languages: Tuple[str, str] = tuple()

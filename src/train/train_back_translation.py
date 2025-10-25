@@ -53,7 +53,7 @@ def trainBackTranslationStage(
                     tgtTokens = None,
                     targetLang = outputLang,
                     mode = "translate"
-                ).argmax(dim = -1)
+                )
 
                 # output lang -> input lang
                 reconstruction = model.forward(
@@ -66,7 +66,6 @@ def trainBackTranslationStage(
                 loss = criterion(
                     reconstruction.view(-1, reconstruction.size(-1)),
                     inputTokens.view(-1),
-                    ignore_index = padToken
                 )
 
                 with torch.no_grad():
