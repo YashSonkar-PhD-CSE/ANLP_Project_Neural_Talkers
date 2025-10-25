@@ -17,13 +17,13 @@ The model is a standard auto-regressive transformer with a unified encoder for m
 Currently, we only provide base model config with following specifications:
 |Field|Value|
 |----|----|
-|Encoder layers|6|
-|Decoder layers|6|
-|Number of attention heads|8|
-|Embedding dimension|512|
+|Encoder layers|4|
+|Decoder layers|4|
+|Number of attention heads|4|
+|Embedding dimension|256|
 |maximum seq. len|512|
-|Tokenizer|BERT Multilingual|
-|Position encoding|RoPE|
+|Tokenizer|BPE|
+|Position encoding|Sinusoidal|
 
 
 Training is only done with RoPE but other variants can be trained by changing the config (code implementation is present).
@@ -78,6 +78,7 @@ python train.py --train-phase backtranslation \
 * Implement multi-task training for improved performance.
 * Implement testing/evaluation loop.
 * Report performance metrics.
+* Implement NAR decoders for faster inference.
 
 ## Credits
 We utilized several open-source works for inspiration of code and for datasets.
