@@ -114,7 +114,6 @@ def trainBackTranslationStage(
                     loss = criterion(
                         reconstruction.view(-1, reconstruction.size(-1)),
                         inputTokens.view(-1),
-                        ignore_index = padToken
                     )
 
                     preds = reconstruction.argmax(dim = -1)
