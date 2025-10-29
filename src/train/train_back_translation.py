@@ -62,7 +62,7 @@ def trainBackTranslationStage(
                     targetLang = inputLang,
                     mode = "translate"
                 )
-
+                # print(reconstruction.shape)
                 loss = criterion(
                     reconstruction.view(-1, reconstruction.size(-1)),
                     inputTokens.view(-1),
@@ -83,7 +83,7 @@ def trainBackTranslationStage(
                     writer.add_scalar(f"{inputLang}/train/accuracy", accuracy, globalStep)
                     writer.add_scalar(f"{inputLang}/train/lr", optimizer.param_groups[0]["lr"], globalStep)
 
-            globalStep += 1
+                globalStep += 1
         
         # validation
         model.eval()
