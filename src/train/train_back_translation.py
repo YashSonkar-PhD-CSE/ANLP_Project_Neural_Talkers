@@ -83,7 +83,7 @@ def trainBackTranslationStage(
                     writer.add_scalar(f"{inputLang}/train/accuracy", accuracy, globalStep)
                     writer.add_scalar(f"{inputLang}/train/lr", optimizer.param_groups[0]["lr"], globalStep)
 
-            globalStep += 1
+                globalStep += 1
         
         # validation
         model.eval()
