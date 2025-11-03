@@ -10,6 +10,7 @@ from ..config import ModelConfig
 from ..datasets import BaseDataset
 from ..models.nar_model import NARTextTransformerModel
 from ..utils import glanceInput, frequencyMaskInput
+from ..tokenizers import TokenizerModule
 
 logging.basicConfig(filename="./nar_autoencoder_phase1_logs.txt")
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ def trainNARAutoEncoderStage(
     numEpochs: int = 10,
     padToken: int = 0,
     device: torch.device = torch.device("cpu"),
-    tokenizer=None,
+    tokenizer: Optional[TokenizerModule] = None,
     glanceFraction: float = 0.5,
     freqMaskFraction: float = 0.3
 ):
@@ -132,8 +133,8 @@ def trainNARAutoEncoderStage(
             glanced = glanceInput(original, padToken=padToken, keepFraction=glanceFraction)
             masked = frequencyMaskInput(glanced, padToken=padToken, tokenFreqs=tokenFreqs, maskFraction=freqMaskFraction)
             with torch.no_grad():
-                output = model(srcTokens=masked, tgtTokens=None, targetLang=lang, mode="reconstruct")
-                preds = output.argmax(dim=-1)
+                output: torch.Tensor = model(srcTokens=masked, tgtTokens=None, targetLang=lang, mode="reconstruct")
+                preds: torch.Tensor = output.argmax(dim=-1)
 
             if tokenizer and hasattr(tokenizer, "decode") and writer is not None:
                 writer.add_text(f"{lang}/reconstruction/original", tokenizer.decode(original.squeeze().tolist()), epoch)
@@ -148,7 +149,7 @@ def trainNARAutoEncoderStage(
 def startTrain(
     root: str,
     languages: Tuple[str, str],
-    tokenizer: torch.nn.Module,
+    tokenizer: TokenizerModule,
     modelConfig: ModelConfig,
     numEpochs: int,
     checkpointDir: str,

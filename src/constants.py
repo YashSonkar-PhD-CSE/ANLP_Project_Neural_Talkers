@@ -11,3 +11,5 @@ DATA_SPLITS = Literal["train", "valid", "test"]
 LANGUAGES = Literal["en", "la", "hi"]
 
 TOKENIZERS = Literal["bert", "bpe", "sentencepiece"]
+
+EVALUATION_TYPES = Literal["translation", "embedding"]

@@ -3,8 +3,10 @@ import random
 import argparse
 from typing import Literal, Optional, Dict
 
+from src.config import ModelConfig
+
 from .tokenizers import TokenizerModule
-from .constants import ACTIVATIONS, LANGUAGES, TOKENIZERS
+from .constants import ACTIVATIONS, EVALUATION_TYPES, LANGUAGES, TOKENIZERS
 
 class SwiGLU(torch.nn.Module):
     def __init__(self, dimension):
@@ -176,3 +178,37 @@ def getTokenizer(tokenizerType: TOKENIZERS, maxLength: int = 512) -> TokenizerMo
         tokenizer_type = tokenizerName,
         max_length = maxLength
     )
+
+def makeEvaluationParser():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--evaluation-type',
+        choices = EVALUATION_TYPES.__args__,
+        help = "Type of evaluation to execute (translation for encoder embeddings)"
+    )
+
+    parser.add_argument(
+        '--checkpoint-path',
+        type = str,
+        default = './checkpoints/backtranslation_epoch1.pt',
+        help = "Path to the checkpoint to use for evaluation",
+    )
+
+    parser.add_argument(
+        '--output-dir',
+        type = str,
+        default = None,
+        help = "Path to folder where results will be saved (None if shouldn't be saved)"
+    )
+
+    return parser
+
+class EvaluationArgs(argparse.Namespace):
+    evaluation_type: EVALUATION_TYPES
+    checkpoint_path: str
+    output_dir: Optional[str]
+
+def getModelConfigFromStateDict(stDict: Dict[str, torch.Tensor]) -> ModelConfig:
+    # TODO: Implement config extraction from state dict
+    return ModelConfig()
