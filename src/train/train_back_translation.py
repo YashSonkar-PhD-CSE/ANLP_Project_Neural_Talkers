@@ -84,7 +84,7 @@ def trainBackTranslationStage(
                     writer.add_scalar(f"{inputLang}/train/lr", optimizer.param_groups[0]["lr"], globalStep)
 
                 globalStep += 1
-        
+        torch.save(model.state_dict(), f"{checkpointDir}/backtranslation_epoch{epoch+1}.pt")
         # validation
         model.eval()
         for direction in [(srcLang, tgtLang), (tgtLang, srcLang)]:
