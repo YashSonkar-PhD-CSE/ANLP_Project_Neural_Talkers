@@ -11,8 +11,12 @@ def main():
     assert os.path.isfile(args.checkpoint_path) and args.checkpoint_path.endswith(".pt"), f"Invalid checkpoint path ({args.checkpoint_path})"
 
     stDict = torch.load(args.checkpoint_path, map_location='cpu')
-    modelConfig = getModelConfigFromStateDict(stDict)
-    model = TextTransformerModel()
+    modelConfig, tokenizer = getModelConfigFromStateDict(
+        stDict,
+        peType = "sinusoidal",
+        tokenizerType = "bpe"
+    )
+    model = TextTransformerModel(modelConfig = modelConfig)
 
     if args.evaluation_type == "translation":
         pass # TODO: Invoke method to evaluation translations

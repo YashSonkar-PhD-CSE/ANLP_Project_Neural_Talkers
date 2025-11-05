@@ -1,12 +1,12 @@
 import torch
 import random
 import argparse
-from typing import Literal, Optional, Dict
+from typing import Literal, Optional, Dict, Tuple
 
 from src.config import ModelConfig
 
 from .tokenizers import TokenizerModule
-from .constants import ACTIVATIONS, EVALUATION_TYPES, LANGUAGES, TOKENIZERS
+from .constants import ACTIVATIONS, EVALUATION_TYPES, LANGUAGES, PE_TYPES, TOKENIZERS
 
 class SwiGLU(torch.nn.Module):
     def __init__(self, dimension):
@@ -209,6 +209,29 @@ class EvaluationArgs(argparse.Namespace):
     checkpoint_path: str
     output_dir: Optional[str]
 
-def getModelConfigFromStateDict(stDict: Dict[str, torch.Tensor]) -> ModelConfig:
-    # TODO: Implement config extraction from state dict
-    return ModelConfig()
+def getModelConfigFromStateDict(
+    stDict: Dict[str, torch.Tensor],
+    peType: PE_TYPES,
+    tokenizerType: TOKENIZERS
+) -> Tuple[ModelConfig, TokenizerModule]:
+    maxSeqLen = stDict['encoder.layers.0.posEncoder.pe'].shape[0]
+    languages = tuple(set(
+        [k.split('.')[1] for k in stDict.keys() if k.startswith('decoder')]
+    ))
+    assert len(languages) == 2, f"Invalid checkpoint provided, found languages ({languages}), only 2 language models suppoted for now"
+    vocabSize = stDict['encoder.tokenEmbedding.weight'].shape[0]
+    embedDim = stDict['encoder.layers.0.qkvProj.weight'].shape[1]
+    tokenizer = getTokenizer(tokenizerType, maxLength = maxSeqLen)
+    specialTokenIds = tokenizer.get_special_token_ids()
+    eosToken: int = specialTokenIds['eos_token_id'] # type: ignore
+    padToken: int = specialTokenIds['pad_token_id'] # type: ignore
+    bosToken: int = specialTokenIds['bos_token_id'] # type: ignore
+    return ModelConfig(
+        maxSeqLen = maxSeqLen,
+        embedDim = embedDim,
+        languages = languages,
+        vocabSize = vocabSize,
+        eosToken = eosToken,
+        padToken = padToken,
+        startToken = bosToken
+    ), tokenizer
