@@ -22,6 +22,7 @@ class TokenizerModule(nn.Module):
             self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
             if self.tokenizer.pad_token is None:
               self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+            #   self.tokenizer.add_special_tokens({''})
 
         elif tokenizer_type == "sentencepiece":
             self.tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-base")
